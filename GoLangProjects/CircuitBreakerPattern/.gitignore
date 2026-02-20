@@ -1,0 +1,27 @@
+# Binaries and Executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+
+# Go Specific
+vendor/
+*.test
+*.prof
+*.out
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS Specific
+Thumbs.db
+Desktop.ini
+.DS_Store

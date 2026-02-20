@@ -1,0 +1,56 @@
+package WriteAheadLogs
+
+import (
+	"fmt"
+	"hash/crc32"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+)
+
+// unmarshalAndVerifyEntry unmarshals the given data into a WAL entry and
+// verifies the CRC of the entry. Only returns an error if the CRC is invalid.
+func unmarshalAndVerifyEntry(data []byte) (*WAL_Entry, error) {
+	var entry WAL_Entry
+	MustUnmarshal(data, &entry)
+
+	if !verifyCRC(&entry) {
+		return nil, fmt.Errorf("CRC mismatch: data may be corrupted")
+	}
+
+	return &entry, nil
+}
+
+// Finds the last segment ID from the given list of files.
+func findLastSegmentIndexinFiles(files []string) (int, error) {
+	var lastSegmentID int
+	for _, file := range files {
+		_, fileName := filepath.Split(file)
+		segementID, err := strconv.Atoi(strings.TrimPrefix(fileName, "segment-"))
+		if err != nil {
+			return 0, err
+		}
+		if segementID > lastSegmentID {
+			lastSegmentID = segementID
+		}
+	}
+	return lastSegmentID, nil
+}
+
+// Creates a log segment file with the given segment ID in the given directory.
+func createSegmentFile(directory string, segmentID int) (*os.File, error) {
+	filePath := filepath.Join(directory, fmt.Sprintf("segement-%d", segmentID))
+	file, err := os.Create(filePath)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func verifyCRC(entry *WAL_Entry) bool {
+	// Reset the entry CRC for the verification.
+	actualCRC := crc32.ChecksumIEEE(append(entry.GetData(), byte(entry.GetLogSequenceNumber())))
+
+	return entry.CRC == actualCRC
+}

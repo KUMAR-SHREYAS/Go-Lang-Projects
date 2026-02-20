@@ -1,0 +1,22 @@
+# Ignore compiled binaries (Windows)
+*.exe
+*.exe~
+
+# Ignore compiled binaries (Unix/Linux/macOS)
+main
+locker
+chaos_test
+
+# Ignore temporary build files
+*.test
+*.prof
+*.out
+
+# Ignore Air or other live-reload binaries
+tmp/
+bin/
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+*.swp
