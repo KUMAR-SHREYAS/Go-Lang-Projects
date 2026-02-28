@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>PP - Websockets</title>
+    <title>Websockets</title>
 </head>
 
 <body>
@@ -83,7 +83,23 @@
             // Check if the browser supports WebSocket
             if (window["WebSocket"]) {
                 console.log("supports websockets");
-                conn  = new WebSocket("ws://"+ document.location.host + "/ws")
+                conn = new WebSocket("ws://" + document.location.host + "/ws")
+
+                // Add a listener to the onmessage event
+                conn.onmessage = function (evt) {
+                    console.log(evt);
+                }
+                conn.onopen = function () {
+                    console.log("WebSocket connected");
+                };
+
+                conn.onclose = function (evt) {
+                    console.log("WebSocket closed:", evt);
+                };
+
+                conn.onerror = function (err) {
+                    console.log("WebSocket error:", err);
+                };
             } else {
                 alert("Not supporting websockets");
             }

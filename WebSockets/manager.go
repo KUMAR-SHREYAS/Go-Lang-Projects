@@ -49,7 +49,7 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 
 	//Start the read/Write process
 	go client.readMessages()
-	// go client.writeMessages()
+	go client.writeMessages()
 }
 
 // addClient will add clients to our clientList
@@ -67,12 +67,16 @@ func (m *Manager) removeClient(client *Client) {
 	m.Lock()
 	defer m.Unlock()
 
-	// Check if Client exists, then delete it
 	if _, ok := m.clients[client]; ok {
-		//close connection
-		client.connection.Close()
-		//remove
+
+		// Remove from manager FIRST
 		delete(m.clients, client)
+
+		//  Stop write goroutine
+		close(client.egress)
+
+		// Close websocket connection
+		client.connection.Close()
 	}
 }
 
@@ -97,10 +101,49 @@ func (c *Client) readMessages() {
 			// We only want to log Strange errors, but not simple Disconnection
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error reading message: %v", err)
+
+				break
 			}
-			break
 		}
 		log.Println("MessageType: ", messageType)
 		log.Println("Payload:  ", string(payload))
+
+		// Hack to test that WriteMessages works as intended
+		// Will be replaced soon
+		c.manager.RLock()
+		for wsclient := range c.manager.clients {
+			wsclient.egress <- payload
+		}
+		c.manager.RUnlock()
 	}
+}
+
+// writeMessages is a process that listens for new messages to output to the Client
+func (c *Client) writeMessages() {
+	defer func() {
+		// Graceful close if this triggers a closing
+		c.manager.removeClient(c)
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.egress:
+			// / Ok will be false Incase the egress channel is closed
+			if !ok {
+				// Manager has closed this connection channel, so communicate that to frontend
+				if err := c.connection.WriteMessage(websocket.CloseMessage, nil); err != nil {
+					//Log that the connection is closed and the reason
+					log.Println("connection closed: ", err)
+				}
+				// Return to close the goroutine
+				return
+			}
+			//Write a Regular text message to the connection
+			if err := c.connection.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.Println(err)
+			}
+			log.Println("sent message")
+		}
+	}
+
 }
