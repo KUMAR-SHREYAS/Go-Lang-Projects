@@ -47,7 +47,37 @@
 
         // selectedchat is by default General.
         var selectedchat = "general";
-
+        /**
+         * Event is used to wrap all messages Send and Recieved
+         * on the Websocket
+         * The type is used as a RPC
+         * */
+        class Event {
+            // Each Event needs a Type
+            // The payload is not required
+            constructor(type, payload) {
+                this.type = type;
+                this.payload = payload;
+            }
+        }
+        /**
+         * routeEvent is a proxy function that routes
+         * events into their correct Handler
+         * based on the type field
+         * */
+        function routeEvent(event) {
+            if (event.type === undefined) {
+                alert("no 'type' field in event");
+            }
+            switch(event.type) {
+                case "new_message":
+                    console.log("new message");
+                    break;
+                    default:
+                        alert("unsupoorted message type");
+                        break;
+            }
+        }
         /**
          * changeChatRoom will update the value of selectedchat
          * and also notify the server that it changes chatroom
@@ -67,9 +97,21 @@
             var newmessage = document.getElementById("message");
             if (newmessage != null) {
                 // console.log(newmessage);
-                conn.send(newmessage.value)
+                // conn.send(newmessage.value)
+                sendEvent("send_message", newmessage.value)
             }
             return false;
+        }
+        /**
+         * sendEvent
+         * eventname - the event name to send on
+         * payload - the data payload
+         * */
+        function sendEvent(eventName, payload){
+            // Create a event Object with a event named send_message
+            const event = new Event(eventName, payload);
+            // Format as JSON and send
+            conn.send(JSON.stringify(event))
         }
         /**
          * Once the website loads, we want to apply listeners and connect to websocket
