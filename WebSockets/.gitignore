@@ -1,1 +1,21 @@
-D:\Go_Lang_Projects\WebSockets\tmp
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build directories
+bin/
+dist/
+
+# Temp files
+tmp/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
