@@ -4,7 +4,8 @@
 *.dll
 *.so
 *.dylib
-
+*.bash
+*.sh
 # Build directories
 bin/
 dist/
@@ -19,3 +20,10 @@ tmp/
 
 # OS
 .DS_Store
+
+server.cert
+server.key
+
+*.crt
+*.key
+*.pem

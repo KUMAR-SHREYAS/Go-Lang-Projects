@@ -159,7 +159,7 @@
             //check if the browser supports WebSocket
             if (window["WebSocket"]) {
                 console.log("supports websockets");
-                conn = new WebSocket("ws://" + document.location.host + "/ws?otp="+otp);
+                conn = new WebSocket("wss://" + document.location.host + "/ws?otp="+otp);
                 //Onopen
                 conn.onopen = function(evt) {
                     document.getElementById("connection-header").innerHTML = "Connected to Websocket: true";

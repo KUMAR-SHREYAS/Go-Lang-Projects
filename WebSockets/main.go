@@ -15,7 +15,7 @@ func main() {
 	setupAPI(ctx)
 
 	//Serve on port :8080
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServeTLS(":8080", "server.crt", "server.key", nil))
 }
 
 func setupAPI(ctx context.Context) {
