@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -45,7 +44,7 @@ func NewManager(ctx context.Context) *Manager {
 	m := &Manager{
 		clients:  make(ClientList),
 		handlers: make(map[string]EventHandler),
-		otps: NewRetentionMap(ctx, 5*time.Second),
+		otps:     NewRetentionMap(ctx, 5*time.Second),
 	}
 	m.setupEventHandlers()
 	return m
@@ -53,10 +52,8 @@ func NewManager(ctx context.Context) *Manager {
 
 // setupEventHandlers configures and adds all handlers
 func (m *Manager) setupEventHandlers() {
-	m.handlers[EventSendMessage] = func(e Event, c *Client) error {
-		fmt.Println(e)
-		return nil
-	}
+	m.handlers[EventSendMessage] = SendMessageHandler
+	m.handlers[EventChangeRoom] = ChatRoomHandler
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
@@ -72,8 +69,9 @@ func (m *Manager) routeEvent(event Event, c *Client) error {
 		return ErrEventNotSupported
 	}
 }
+
 // loginHandler is used to verify an user authentication and return a one time password
-func(m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
+func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 	type userLoginRequest struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -82,12 +80,12 @@ func(m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 	var req userLoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w , err.Error(),http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Authenticate user / Verify Access token, what ever auth method you use
-	if req.Username == "yash" && req.Password =="123" {
+	if req.Username == "yash" && req.Password == "123" {
 		//format to return otp in to the frontend
 		type response struct {
 			OTP string `json:"otp"`
